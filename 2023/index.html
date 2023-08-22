@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="robots" content="noindex,follow">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2023 CMAS Results | The Denver Post</title>
+    <link rel="icon" href="https://www.denverpost.com/wp-content/uploads/2016/05/cropped-DP_bug_denverpost.jpg?w=32" sizes="32x32" />
+    <!-- <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" /> -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" />
+    <script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+    <script src="https://extras.denverpost.com/foundation/js/vendor/modernizr.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.3/moment-with-locales.min.js" integrity="sha512-vFABRuf5oGUaztndx4KoAEUVQnOvAIFs59y4tO0DILGWhQiFnFHiR+ZJfxLDyJlXgeut9Z07Svuvm+1Jv89w5g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.1/papaparse.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/yadcf/0.9.2/jquery.dataTables.yadcf.js"></script>
+    <script src="https://cdn.datatables.net/plug-ins/1.12.1/sorting/natural.js"></script>
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap');
+
+    html body {
+        font-family: 'Roboto Mono', monospace;
+    }
+
+    #filters {
+        font-size: .85rem;
+    }
+
+    button.yadcf-filter-reset-button {
+        color: red;
+        margin-left: 10px;
+    }
+
+    select {
+        margin-top: 7px;
+        margin-bottom: 0;
+        font-size: .95rem;
+    }
+
+    .yadcf-filter-range {
+        height: 2.9em;
+        border: 1px solid silver;
+    }
+
+    .filter-text {
+        font-weight: bold;
+        margin-top: .5em;
+        margin-bottom: .5em;
+    }
+
+
+    button.yadcf-filter-reset-button {
+        color: #990012;
+        font-weight: normal;
+    }
+
+    #cmas-table {
+        font-size: .9em;
+    }
+
+    th {
+        text-align: left;
+    }
+
+    td {
+        padding: 6px !important;
+    }
+
+    select,
+    button {
+        font-family: 'Roboto Mono', monospace;
+    }
+
+    select {
+        width: 250px;
+    }
+
+    .page-title {
+        font-family: 'Roboto Mono', monospace;
+        margin-bottom: -10px;
+        line-height: 1.2;
+    }
+
+    .chatter {
+        font-family: 'Roboto Mono', monospace;
+        margin-bottom: 20px;
+
+    }
+
+    .source {
+        font-size: .8em;
+        font-style: italic;
+        color: #646464;
+        margin: 5px 0 0 0;
+    }
+
+    .filter-note {
+        font-size: .9em;
+        color: #969696;
+        font-style: italic;
+        display: inline-block;
+        margin-top: 5px;
+        line-height: 1.3;
+    }
+
+    legend {
+        font-weight: 700;
+    }
+
+    .dataTables_info {
+        margin-bottom: 15px;
+    }
+
+    #cmas-table_filter {
+        margin-bottom: 30px;
+    }
+    </style>
+</head>
+
+<body>
+    <h2 class="page-title">Search Colorado schools' CMAS results</h2>
+    <p class="chatter"><em>View results by district, school, content (English Language Arts or Mathematics) or grade by using the dropdown filters. Click column headers to sort the data. An asterisk in the results means the data is not displayed in order to protect student privacy or because there was no data for that time period.</em></p>
+    <!-- <fieldset id="cmas-filter">
+        <legend>Filter by results</legend>
+        <form>
+            <label><input type="radio" id="reset-button" name="cmas-filter" checked>All locations</label>
+            <label><input type="radio" id="filter-button" name="cmas-filter">Locations with PFOA and PFOS detected</label>
+        </form>
+    </fieldset> -->
+    <div id="filters">
+        <p id="filter-1"></p>
+        <p id="filter-2"></p>
+        <p id="filter-3"></p>
+        <p id="filter-4"></p>
+    </div>
+    <table id="cmas-table" class="display" cellspacing="0" width="100%">
+        <thead>
+            <tr>
+                <th colspan="4"></th>
+                <th colspan="3" style="background:#000;color:#fff;text-transform:uppercase;text-align:center;">Met or exceeded expectations</th>
+            </tr>
+            <tr>
+                <th class="all">District</th>
+                <th class="all">School</th>
+                <th class="all">Content</th>
+                <th class="all">Grade</th>
+                <th class="all" style="border-left:1px solid #000">2023</th>
+                <th class="all">2019</th>
+                <th class="all" style="border-right:1px solid #000">Change 2019-23</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+    <p class="source">Source: <a href="https://www.cde.state.co.us/assessment/cmas" target="_blank">Colorado Department of Education</a> / By Kevin Hamm, The Denver Post</p>
+    <script>
+    $(document).ready(function() {
+        Papa.parse('./all_schools_2023.csv', {
+            download: true,
+            header: true,
+            skipEmptyLines: true,
+            dynamicTyping: true,
+            complete: function(results) {
+                var data = results.data;
+
+                var table = $('#cmas-table').DataTable({
+                    //scrollY: '1000px',
+                    //scrollCollapse: true,
+                    data: data,
+                    scrollX: true,
+                    paging: true,
+                    pageLength: 25,
+                    //displayStart: 0, // start table at row number; begins at 0
+                    fixedHeader: false,
+                    responsive: false,
+                    //dom: '<f<t>ilp>',
+                    dom: '<iftp>',
+                    order: [
+                        [0, 'asc']
+                    ],
+                    columnDefs: [{
+                            targets: [4, 5, 6],
+                            render: $.fn.dataTable.render.number(',', '.', 1, '', '%'),
+                            type: 'natural'
+                        }
+                        // {
+                        //     orderData: 2,
+                        //     targets: 8
+                        // }
+                    ],
+                    columns: [
+                        { data: 'District Name' },
+                        { data: 'School Name' },
+                        { data: 'Content' },
+                        { data: 'Grade' },
+                        { data: '2023' },
+                        { data: '2019' },
+                        { data: 'Change 2019 to 2023' }
+                    ],
+                    // createdRow: function(row, data, index) {
+                    //     // if (data.Comment == '') {
+                    //     //     var td = $(row).find('td:first');
+                    //     //     td.addClass('no-btn');
+                    //     // };
+                    //     if (data.Team == 'Denver') {
+                    //         $(row).addClass('nuggets-color');
+                    //     }
+                    // }
+                });
+                // $('#filter-button').click(function() {
+                //     $.fn.dataTableExt.afnFiltering.push(function(settings, data, dataIndex) {
+                //         if (data[1] != 'Not detected') {
+                //             return true;
+                //         }
+                //         return false;
+                //     })
+                //     table.draw();
+                // });
+
+                $('#reset-button').on('click', function(e) {
+                    // e.preventDefault();
+                    $.fn.dataTableExt.afnFiltering.length = 0;
+                    table.draw();
+                });
+                yadcf.init(table, [{
+                        column_number: 0,
+                        filter_container_id: 'filter-1',
+                        filter_default_label: 'Filter by district'
+                    },
+                    {
+
+                        column_number: 1,
+                        filter_container_id: 'filter-2',
+                        filter_default_label: 'Filter by school'
+                    },
+                    {
+
+                        column_number: 2,
+                        filter_container_id: 'filter-3',
+                        filter_default_label: 'Filter by content'
+                    },
+                    {
+
+                        column_number: 3,
+                        filter_container_id: 'filter-4',
+                        filter_default_label: 'Filter by grade'
+                    }
+                ], {
+                    cumulative_filtering: true,
+                    filter_reset_button_text: 'Reset'
+                });
+
+                $('.yadcf-filter-reset-button').on('click', function() {
+                    level = parseInt(this.id.split('-')[1]);
+                    //disableDependentFilter(level, true);
+                });
+
+                $('.yadcf-filter').on('change', function() {
+                    level = parseInt(this.id.slice(-1));
+                    inuse = $(this).hasClass('inuse');
+                });
+            }
+        })
+
+
+    })
+    </script>
+</body>
+
+</html>
